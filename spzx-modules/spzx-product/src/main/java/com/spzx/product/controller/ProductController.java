@@ -1,6 +1,7 @@
 package com.spzx.product.controller;
 
 import com.github.pagehelper.PageHelper;
+import com.spzx.common.core.constant.SecurityConstants;
 import com.spzx.common.core.domain.R;
 import com.spzx.common.core.exception.ServiceException;
 import com.spzx.common.core.web.controller.BaseController;
@@ -145,12 +146,36 @@ public class ProductController extends BaseController {
 
 
     //----详情 start------------------------------
-    @Operation(summary = "获取商品sku信息")
+    @Operation(summary = "ProductSku")
     @InnerAuth
-    @GetMapping(value = "/getProductSku/{skuId}")
-    public R<ProductSku> getProductSku(@PathVariable("skuId") Long skuId) {
-        return R.ok(productService.getProductSku(skuId));
+    @GetMapping("/getProductSku/{skuId}")   //product_sku and sku_stock
+    public R<ProductSku> getProductSku(@PathVariable("skuId") Long skuId){
+        ProductSku productSku = productService.getProductSkuById(skuId);
+        return R.ok(productSku);
     }
+
+//    @GetMapping(value = "/product/getProduct/{id}") //product
+//    public R<Product> getProduct(@PathVariable("id") Long id){
+//        Product product = productService.getProductById(id);
+//        return R.ok(product);
+//    }
+
+
+    @Operation(summary = "获取商品sku规则详细信息")
+    @InnerAuth
+    @GetMapping(value = "/getSkuSpecValue/{id}")    //product_sku
+    public R<Map<String, Long>> getSkuSpecValueByProductId(@PathVariable("id") Long id){
+        Map<String, Long> map = productService.getSkuSpecValueByProductId(id);
+        return R.ok(map);
+    }
+
+
+//    @Operation(summary = "获取商品sku信息")
+//    @InnerAuth
+//    @GetMapping(value = "/getProductSku/{skuId}")
+//    public R<ProductSku> getProductSku(@PathVariable("skuId") Long skuId) {
+//        return R.ok(productService.getProductSku(skuId));
+//    }
 
     @Operation(summary = "获取商品信息")
     @InnerAuth
@@ -173,12 +198,12 @@ public class ProductController extends BaseController {
         return R.ok(productService.getProductDetails(id));
     }
 
-    @Operation(summary = "获取商品sku规则详细信息")
-    @InnerAuth
-    @GetMapping(value = "/getSkuSpecValue/{id}")
-    public R<Map<String, Long>> getSkuSpecValue(@PathVariable("id") Long id) {
-        return R.ok(productService.getSkuSpecValue(id));
-    }
+//    @Operation(summary = "获取商品sku规则详细信息")
+//    @InnerAuth
+//    @GetMapping(value = "/getSkuSpecValue/{id}")
+//    public R<Map<String, Long>> getSkuSpecValue(@PathVariable("id") Long id) {
+//        return R.ok(productService.getSkuSpecValue(id));
+//    }
 
     @Operation(summary = "获取商品sku库存信息")
     @InnerAuth
@@ -186,6 +211,7 @@ public class ProductController extends BaseController {
     public R<SkuStockVo> getSkuStock(@PathVariable("skuId") Long skuId) {
         return R.ok(productService.getSkuStock(skuId));
     }
+
     //----详情 end------------------------------
 
 }

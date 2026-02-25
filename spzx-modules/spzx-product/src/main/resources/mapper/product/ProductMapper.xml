@@ -5,6 +5,7 @@
 <mapper namespace="com.spzx.product.mapper.ProductMapper">
 
     <resultMap type="Product" id="ProductResult" autoMapping="true">
+
     </resultMap>
 
     <select id="selectProductList" parameterType="Product" resultMap="ProductResult">
@@ -30,5 +31,26 @@
         </where>
         order by id desc
     </select>
+
+    <select id="getProductSkuById" resultType="com.spzx.product.api.domain.ProductSku">
+        select ps.sku_code, ps.sku_name, ps.product_id, ps.thumb_img, ps.sale_price, ps.market_price,
+               ps.cost_price, ps.sku_spec, ps.weight, ps.volume, ps.status,
+               ss.available_num, ss.sale_num
+        from product_sku ps
+        join sku_stock ss on ps.id = ss.sku_id
+        <where>
+            <if test="skuId != null ">and sku_id = #{skuId}</if>
+        </where>
+    </select>
+
+    <select id="getProductById" resultType="com.spzx.product.api.domain.Product">
+
+
+    </select>
+
+
+
+
+
 
 </mapper>

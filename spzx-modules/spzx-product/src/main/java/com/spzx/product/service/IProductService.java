@@ -81,9 +81,13 @@ public interface IProductService extends IService<Product> {
      */
     List<ProductSku> skuList(SkuQuery skuQuery);
 
+    ProductSku getProductSkuById(Long skuId);
+
+    Map<String, Long> getSkuSpecValueByProductId(Long id);
 
 
     //----详情 start------------------------------
+
     ProductSku getProductSku(Long skuId);
 
     Product getProduct(Long id);
@@ -92,9 +96,10 @@ public interface IProductService extends IService<Product> {
 
     ProductDetails getProductDetails(Long id);
 
-    Map<String, Long> getSkuSpecValue(Long id);
+//    Map<String, Long> getSkuSpecValue(Long id);
 
     SkuStockVo getSkuStock(Long skuId);
+
     //----详情 end------------------------------
 
     public List<SkuPrice> getSkuPriceList(List<Long> skuIdList);

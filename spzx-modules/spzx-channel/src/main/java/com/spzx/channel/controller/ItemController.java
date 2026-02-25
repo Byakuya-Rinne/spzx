@@ -22,6 +22,7 @@ public class ItemController extends BaseController {
     @Operation(summary = "商品详情")
     @GetMapping("/{skuId}")
     public AjaxResult item(@PathVariable Long skuId) throws Exception {
+
         return success(itemService.item(skuId));
     }
 

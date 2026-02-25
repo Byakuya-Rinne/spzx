@@ -31,6 +31,7 @@ public class ItemServiceImpl implements IItemService {
 
         ItemVo itemVo = new ItemVo();
 
+
         //任务1.获取sku信息
         R<ProductSku> productSkuResult = remoteProductService.getProductSku(skuId, SecurityConstants.INNER);
         if (R.FAIL == productSkuResult.getCode()) {

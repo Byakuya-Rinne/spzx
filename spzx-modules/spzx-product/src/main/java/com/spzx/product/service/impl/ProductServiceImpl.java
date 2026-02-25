@@ -224,10 +224,27 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
 
+
     /**
      * 服务提供者：6个接口来服务于商品详情查询。需要进行优化，提供查询效率。
      * 需要使用redis来提高性能。
      */
+    @Override
+    public ProductSku getProductSkuById(Long skuId) {
+        ProductSku productSku = productMapper.getProductSkuById(skuId);//product_sku and sku_stock
+        return productSku;
+    }
+
+    @Override
+    public Map<String, Long> getSkuSpecValueByProductId(Long productId) {
+        LambdaQueryWrapper<ProductSku> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ProductSku::getProductId, productId).select(ProductSku::getSkuSpec, ProductSku::getId);
+        List<ProductSku> productSkus = productSkuMapper.selectList(wrapper);
+        Map<String, Long> collect = productSkus.stream().collect(Collectors.toMap(ProductSku::getSkuSpec, ProductSku::getId));
+        return collect;
+    }
+
+
 
     @Override
     public ProductSku getProductSku(Long skuId) {
@@ -255,18 +272,18 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         return productDetailsMapper.selectOne(new LambdaQueryWrapper<ProductDetails>().eq(ProductDetails::getProductId, id));
     }
 
-
-    @Override
-    public Map<String, Long> getSkuSpecValue(Long id) {
-        List<ProductSku> productSkuList = productSkuMapper.selectList(new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, id).select(ProductSku::getId, ProductSku::getSkuSpec));
-        Map<String, Long> skuSpecValueMap = new HashMap<>();
-        productSkuList.forEach(item -> {
-            skuSpecValueMap.put(item.getSkuSpec(), item.getId());
-        });
-        return skuSpecValueMap;
-    }
-
-
+//    @Override
+//    public Map<String, Long> getSkuSpecValue(Long id) {
+//        List<ProductSku> productSkuList = productSkuMapper.selectList(
+//                new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, id).select(ProductSku::getId, ProductSku::getSkuSpec));
+//        Map<String, Long> skuSpecValueMap = new HashMap<>();
+//        productSkuList.forEach(item -> {
+//            skuSpecValueMap.put(item.getSkuSpec(), item.getId());
+//        });
+//        return skuSpecValueMap;
+//    }
+//
+//
     @Override
     public SkuStockVo getSkuStock(Long skuId) {
         SkuStock skuStock = skuStockMapper.selectOne(new LambdaQueryWrapper<SkuStock>().eq(SkuStock::getSkuId, skuId));
@@ -297,5 +314,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             return skuPrice;
         }).toList();
     }
+
 
 }

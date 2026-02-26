@@ -9,12 +9,18 @@ import com.spzx.common.core.domain.R;
 import com.spzx.common.core.exception.ServiceException;
 import com.spzx.product.api.RemoteProductService;
 import com.spzx.product.api.domain.ProductSku;
+import com.spzx.product.api.domain.vo.SkuPrice;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -63,21 +69,38 @@ public class CartServiceImpl implements ICartService {
         redisTemplate.opsForHash().delete(key, skuId.toString());
     }
 
+    @Override
+    public void updateSingleSkuIsChecked(String skuId, Integer isChecked) {
+        String key = getHashKey();
+        CartInfo cartInfo = (CartInfo) redisTemplate.opsForHash().get(key, skuId);
+        cartInfo.setIsChecked(isChecked);
+        redisTemplate.opsForHash().put( key, skuId, cartInfo);
+    }
 
 
+    @Override
+    public List<CartInfo> getCart() {
+        //从redis查询购物车info, 封装成list
+        String key = getHashKey();
+        List<CartInfo> carts = redisTemplate.opsForHash().values(key);
 
+//      需要更新每一件商品的 @Schema(description = "实时价格") private BigDecimal skuPrice;
 
+        List<Long> skuIds = carts.stream().map(CartInfo::getSkuId).collect(Collectors.toList());
+        R<List<SkuPrice>> skuPriceListR = remoteProductService.getSkuPriceList(skuIds, SecurityConstants.INNER);
+        if (R.FAIL == skuPriceListR.getCode()){
+            throw new ServiceException( skuPriceListR.getMsg() );
+        }
 
+        //含有Long skuId   BigDecimal 售价salePrice   BigDecimal 市场价marketPrice
+        List<SkuPrice> skuPrices = skuPriceListR.getData();
 
-
-
-
-
-
-
-
-
-
-
-
+        //转为skuId和市场价的Map
+        Map<Long, BigDecimal> skuIdMarketPriceMap = skuPrices.stream().collect(Collectors.toMap(SkuPrice::getSkuId, SkuPrice::getSalePrice));
+        carts.forEach((cartInfo)->{
+            BigDecimal skuPrice = skuIdMarketPriceMap.get(cartInfo.getSkuId());
+            cartInfo.setSkuPrice(skuPrice);
+        });
+        return carts;
+    }
 }

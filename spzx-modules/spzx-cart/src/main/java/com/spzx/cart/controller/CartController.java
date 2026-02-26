@@ -1,5 +1,6 @@
 package com.spzx.cart.controller;
 
+import com.spzx.cart.api.domain.CartInfo;
 import com.spzx.cart.service.ICartService;
 import com.spzx.common.core.web.controller.BaseController;
 import com.spzx.common.core.web.domain.AjaxResult;
@@ -8,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "购物车接口")
 @RestController
@@ -33,11 +36,24 @@ public class CartController extends BaseController {
         return success("删除成功");
     }
 
+    @Operation( summary = "修改单个Sku选中状态")
+    @RequiresLogin
+    @GetMapping("/checkCart/{skuId}/{isChecked}")
+    public AjaxResult updateSingleSkuIsChecked(@PathVariable String skuId, @PathVariable Integer isChecked){
+        cartService.updateSingleSkuIsChecked(skuId, isChecked);
+        return success("修改成功");
+    }
+
+    @Operation( summary = "查看购物车")
+    @RequiresLogin
+    @GetMapping("/cartList")
+    public AjaxResult getCart(){
+        //调用ICartService中查看购物车的方法
+        List<CartInfo> cartInfoList = cartService.getCart();
+        return success(cartInfoList);
+    }
 
 
-//
-//    @Operation( summary = "修改")
-//    @Operation( summary = "查询")
 
 
 }

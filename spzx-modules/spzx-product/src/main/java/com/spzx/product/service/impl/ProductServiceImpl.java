@@ -237,25 +237,26 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         try {
             //先查redis，能查到直接返回
             String redisKey = "product:sku:" + skuId;
-            ProductSku redisProductSku = (ProductSku)redisTemplate.opsForValue().get(redisKey);
-            if (redisProductSku != null){
+            ProductSku redisProductSku = (ProductSku) redisTemplate.opsForValue().get(redisKey);
+            if (null != redisProductSku ){
+                log.info("命中缓存");
                 return redisProductSku;
             }
 
             //redis查不到, 为了防止缓存击穿, 加分布式锁
             String lockKey = "product:sku:lock:" + skuId;
             String lockValue = UUID.randomUUID().toString().replaceAll("-", "");
-            Boolean flag = redisTemplate.opsForValue().setIfAbsent(lockKey, lockValue, 5000, TimeUnit.MILLISECONDS);
+            Boolean flag = redisTemplate.opsForValue().setIfAbsent(lockKey, lockValue, 2000, TimeUnit.MILLISECONDS);
             if (flag){
                 try {
                     //加锁成功
                     //再次查询redis, 防止其他线程在此线程查redis之后, 加锁之前已经查询过数据库
                     redisProductSku = (ProductSku)redisTemplate.opsForValue().get(redisKey);
-                    if (redisProductSku != null){
+                    if (null != redisProductSku){
                         return redisProductSku;
                     }
                     //确定缓存里没有, 已经加锁, 开始查数据库
-                    ProductSku productSku = productMapper.getProductSkuById(skuId);
+                    ProductSku productSku = productSkuMapper.selectById(skuId);
 
                     redisTemplate.opsForValue().set(redisKey, productSku);
 
@@ -275,14 +276,17 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 //加锁失败, 等待一会重新查
                 try {
                     Thread.sleep(200);
-                    ProductSku productSku = getProductSkuById(skuId);
-                    return productSku;
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+
+                ProductSku productSku = getProductSkuById(skuId);
+                return productSku;
+
             }
         } catch (RuntimeException e) {
-            ProductSku productSku = productMapper.getProductSkuById(skuId);//product_sku and sku_stock
+            log.info("连接Redis出现异常");
+            ProductSku productSku = productSkuMapper.selectById(skuId);//product_sku and sku_stock
             return productSku;
         }
     }

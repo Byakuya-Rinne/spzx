@@ -7,10 +7,7 @@ import com.spzx.common.security.annotation.RequiresLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "购物车接口")
 @RestController
@@ -20,7 +17,7 @@ public class CartController extends BaseController {
     @Autowired
     private ICartService cartService;
 
-    @Operation( summary = "添加")
+    @Operation( summary = "添加、修改数量")
     @RequiresLogin
     @GetMapping("/addToCart/{skuId}/{num}")
     public AjaxResult addCart(@PathVariable Long skuId, @PathVariable Integer num){
@@ -28,24 +25,19 @@ public class CartController extends BaseController {
         return success("添加成功");
     }
 
+    @Operation( summary = "删除单个SKU")
+    @RequiresLogin
+    @DeleteMapping("/deleteCart/{skuId}")
+    public AjaxResult deleteSku(@PathVariable Long skuId){
+        cartService.deleteSku(skuId);
+        return success("删除成功");
+    }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    @Operation( summary = "删除")
-    @Operation( summary = "修改")
-    @Operation( summary = "查询")
+//
+//    @Operation( summary = "修改")
+//    @Operation( summary = "查询")
 
 
 }

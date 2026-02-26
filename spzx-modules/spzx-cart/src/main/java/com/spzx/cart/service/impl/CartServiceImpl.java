@@ -32,7 +32,6 @@ public class CartServiceImpl implements ICartService {
     }
 
     @Override
-
     public void addCart(Long skuId, Integer num) {
         String key = getHashKey();
         //查询redis, 现在购物车里有没有该sku
@@ -57,4 +56,28 @@ public class CartServiceImpl implements ICartService {
         }
         redisTemplate.opsForHash().put( key, skuId, cartInfo);
     }
+
+    @Override
+    public void deleteSku(Long skuId) {
+        String key = getHashKey();
+        redisTemplate.opsForHash().delete(key, skuId.toString());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -19,11 +19,13 @@ import com.spzx.product.service.IProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -231,8 +233,58 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
      */
     @Override
     public ProductSku getProductSkuById(Long skuId) {
-        ProductSku productSku = productMapper.getProductSkuById(skuId);//product_sku and sku_stock
-        return productSku;
+
+        try {
+            //先查redis，能查到直接返回
+            String redisKey = "product:sku:" + skuId;
+            ProductSku redisProductSku = (ProductSku)redisTemplate.opsForValue().get(redisKey);
+            if (redisProductSku != null){
+                return redisProductSku;
+            }
+
+            //redis查不到, 为了防止缓存击穿, 加分布式锁
+            String lockKey = "product:sku:lock:" + skuId;
+            String lockValue = UUID.randomUUID().toString().replaceAll("-", "");
+            Boolean flag = redisTemplate.opsForValue().setIfAbsent(lockKey, lockValue, 5000, TimeUnit.MILLISECONDS);
+            if (flag){
+                try {
+                    //加锁成功
+                    //再次查询redis, 防止其他线程在此线程查redis之后, 加锁之前已经查询过数据库
+                    redisProductSku = (ProductSku)redisTemplate.opsForValue().get(redisKey);
+                    if (redisProductSku != null){
+                        return redisProductSku;
+                    }
+                    //确定缓存里没有, 已经加锁, 开始查数据库
+                    ProductSku productSku = productMapper.getProductSkuById(skuId);
+
+                    redisTemplate.opsForValue().set(redisKey, productSku);
+
+                    return productSku;
+                    //执行完之后要解锁, 所以用try的finally
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    //保证解锁原子性, 用lua脚本
+                    String script = """
+                           if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end
+                            """;
+                    RedisScript<Boolean> redisScript = RedisScript.of(script, Boolean.class);
+                    redisTemplate.execute(redisScript, Arrays.asList(lockKey), lockValue);
+                }
+            }else {
+                //加锁失败, 等待一会重新查
+                try {
+                    Thread.sleep(200);
+                    ProductSku productSku = getProductSkuById(skuId);
+                    return productSku;
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (RuntimeException e) {
+            ProductSku productSku = productMapper.getProductSkuById(skuId);//product_sku and sku_stock
+            return productSku;
+        }
     }
 
     @Override
@@ -246,6 +298,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
 
 
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public ProductSku getProductSku(Long skuId) {
         return productSkuMapper.selectById(skuId);

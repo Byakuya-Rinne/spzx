@@ -1,5 +1,6 @@
 package com.spzx.cart.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.spzx.cart.api.RemoteCartService;
 import com.spzx.cart.api.domain.CartInfo;
 import com.spzx.cart.service.ICartService;
@@ -17,6 +18,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
@@ -102,5 +104,21 @@ public class CartServiceImpl implements ICartService {
             cartInfo.setSkuPrice(skuPrice);
         });
         return carts;
+    }
+
+    @Override
+    public List<CartInfo> getCartCheckedList(Long userId) {
+
+        String cartKey = getHashKey();
+        List<CartInfo> cartCachInfoList = redisTemplate.opsForHash().values(cartKey);
+
+        List<CartInfo> checkedCollect = cartCachInfoList.stream().filter(cartInfo -> {
+            if (cartInfo.getIsChecked() == 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }).collect(Collectors.toList());
+        return checkedCollect;
     }
 }

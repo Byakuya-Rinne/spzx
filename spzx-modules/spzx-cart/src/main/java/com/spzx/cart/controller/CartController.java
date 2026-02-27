@@ -2,10 +2,13 @@ package com.spzx.cart.controller;
 
 import com.spzx.cart.api.domain.CartInfo;
 import com.spzx.cart.service.ICartService;
+import com.spzx.common.core.domain.R;
 import com.spzx.common.core.web.controller.BaseController;
 import com.spzx.common.core.web.domain.AjaxResult;
+import com.spzx.common.security.annotation.InnerAuth;
 import com.spzx.common.security.annotation.RequiresLogin;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -51,6 +54,13 @@ public class CartController extends BaseController {
         //调用ICartService中查看购物车的方法
         List<CartInfo> cartInfoList = cartService.getCart();
         return success(cartInfoList);
+    }
+
+    @Operation(summary="查询用户购物车列表中选中商品列表")
+    @InnerAuth
+    @GetMapping("/getCartCheckedList/{userId}")
+    public R<List<CartInfo>> getCartCheckedList(@Parameter(name = "userId", description = "会员id", required = true) @PathVariable Long userId){
+        return R.ok(cartService.getCartCheckedList(userId));
     }
 
 

@@ -13,4 +13,6 @@ public interface ICartService {
     void updateSingleSkuIsChecked(String skuId, Integer isChecked);
 
     List<CartInfo> getCart();
+
+    List<CartInfo> getCartCheckedList(Long userId);
 }

@@ -103,4 +103,6 @@ public interface IProductService extends IService<Product> {
     //----详情 end------------------------------
 
     public List<SkuPrice> getSkuPriceList(List<Long> skuIdList);
+
+    String checkAndLockStock(List<SkuLockVo> skuLockVoList);
 }

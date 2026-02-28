@@ -7,6 +7,7 @@ import com.spzx.common.core.utils.bean.BeanUtils;
 import com.spzx.product.api.domain.Product;
 import com.spzx.product.api.domain.ProductDetails;
 import com.spzx.product.api.domain.ProductSku;
+import com.spzx.product.api.domain.vo.SkuLockVo;
 import com.spzx.product.api.domain.vo.SkuPrice;
 import com.spzx.product.api.domain.vo.SkuQuery;
 import com.spzx.product.api.domain.vo.SkuStockVo;
@@ -377,5 +378,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }).toList();
     }
 
+    @Override
+    public String checkAndLockStock(List<SkuLockVo> skuLockVoList) {
+        for (SkuLockVo skuLockVo : skuLockVoList) {
+            Integer count = productMapper.checkAndLockStock(skuLockVo.getSkuId(), skuLockVo.getSkuNum());
+            if (count.equals(0)){
+                return "checkedAndLockStock.getMsg()";
+            }
+        }
 
+        return "";
+    }
 }

@@ -3,6 +3,7 @@ package com.spzx.product.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.spzx.product.api.domain.Product;
 import com.spzx.product.api.domain.ProductSku;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -22,5 +23,5 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     ProductSku getProductSkuById(Long skuId);
 
-    Map<String, Long> getProductById(Long id);
+    Integer checkAndLockStock(@Param("skuId") Long skuId, @Param("skuNum") Integer skuNum);
 }

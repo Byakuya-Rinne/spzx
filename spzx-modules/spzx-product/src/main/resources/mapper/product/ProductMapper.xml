@@ -8,6 +8,7 @@
 
     </resultMap>
 
+
     <select id="selectProductList" parameterType="Product" resultMap="ProductResult">
         select
         p.id, p.name, p.brand_id, p.category1_id, p.category2_id, p.category3_id, p.unit_name,
@@ -43,12 +44,16 @@
         </where>
     </select>
 
-    <select id="getProductById" resultType="com.spzx.product.api.domain.Product">
 
 
-    </select>
-
-
+    <update id="checkAndLockStock">
+        update sku_stock
+        set available_num = available_num - #{skuNum},
+            sale_num = sale_num + #{skuNum}
+        where sku_id = #{skuId}
+        and available_num >= #{skuNum}
+        and del_flag = '0'
+    </update>
 
 
 

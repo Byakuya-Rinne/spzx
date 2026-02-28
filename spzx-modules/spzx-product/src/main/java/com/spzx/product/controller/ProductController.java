@@ -214,4 +214,54 @@ public class ProductController extends BaseController {
 
     //----详情 end------------------------------
 
+    @PostMapping("/product/checkAndLockStock")
+    R<String> checkAndLockStock(@RequestBody List<SkuLockVo> skuLockVoList, @RequestHeader(SecurityConstants.FROM_SOURCE) String source){
+        return R.ok(productService.checkAndLockStock(skuLockVoList));
+    }
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

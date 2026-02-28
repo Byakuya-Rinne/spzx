@@ -66,6 +66,7 @@ public class OrderInfoController extends BaseController {
         return success(orderInfoService.selectOrderInfoById(id));
     }
 
+
     @Operation(summary = "选中要购买的商品后前往结算页面")
     @RequiresLogin
     @GetMapping(value = "/trade")
@@ -73,6 +74,16 @@ public class OrderInfoController extends BaseController {
         TradeVo tradeVo = orderInfoService.trade();
         return success(tradeVo);
     }
+
+    @Operation(summary = "提交订单")
+    @RequiresLogin
+    @PostMapping("/submitOrder")
+    public AjaxResult submitOrder(@RequestBody OrderForm orderForm){
+        String orderId = orderInfoService.submitOrder(orderForm);
+        return success(orderId);
+    }
+
+
 
 
 
